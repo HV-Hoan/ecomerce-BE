@@ -1,0 +1,156 @@
+openapi: 3.0.3
+info:
+  title: hoan_test
+  description: OpenAPI 3.0
+  version: 1.0.11
+servers:
+  - url: "http://localhost:5000"
+tags:
+  - name: user
+    description: Operations about user
+paths:
+  /api/user:
+    get:
+      tags:
+        - user
+      summary: Lấy danh sách người dùng
+      description: Chức năng lấy danh sách người dùng từ MySQL
+      operationId: getUserList
+      responses:
+        "200":
+          description: Lấy danh sách thành công
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    username:
+                      type: string
+                      example: "john_doe"
+                    userRole:
+                      type: string
+                      example: "admin"
+        "500":
+          description: Lỗi server
+
+    post:
+      tags:
+        - user
+      summary: Thêm người dùng mới vào MySQL
+      description: API dùng để thêm người dùng vào hệ thống
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "john_doe"
+                password:
+                  type: string
+                  example: "123456"
+                userRole:
+                  type: string
+                  example: "admin"
+      responses:
+        "201":
+          description: Người dùng được tạo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Thêm thành công!"
+                  id:
+                    type: integer
+                    example: 1
+        "400":
+          description: Dữ liệu đầu vào không hợp lệ
+        "500":
+          description: Lỗi server
+  /api/user/{id}:
+    delete:
+      tags:
+        - user
+      summary: Xóa người dùng theo ID
+      description: API dùng để xóa người dùng trong hệ thống bằng ID
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          description: ID của người dùng cần xóa
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Xóa người dùng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Xóa thành công!"
+        "404":
+          description: Không tìm thấy người dùng
+        "500":
+          description: Lỗi server
+
+    put:
+      tags:
+        - user
+      summary: Cập nhật thông tin người dùng
+      description: API dùng để cập nhật người dùng trong hệ thống bằng ID
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          description: ID của người dùng cần cập nhật
+          required: true
+          schema:
+            type: integer
+            example: 1
+      requestBody: # ✅ Thêm requestBody để định nghĩa dữ liệu đầu vào
+        description: Dữ liệu cập nhật người dùng
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "new_username"
+                password:
+                  type: string
+                  example: "12345"
+      responses:
+        "200":
+          description: Cập nhật người dùng thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Cập nhật thành công!"
+        "400":
+          description: Yêu cầu không hợp lệ
+        "404":
+          description: Không tìm thấy người dùng
+        "500":
+          description: Lỗi server
