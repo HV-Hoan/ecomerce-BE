@@ -8,6 +8,8 @@ servers:
 tags:
   - name: user
     description: Operations about user
+  - name: product
+    description: Operations about user
 paths:
   /api/user:
     get:
@@ -154,3 +156,111 @@ paths:
           description: Không tìm thấy người dùng
         "500":
           description: Lỗi server
+
+  /api/upload:
+    post:
+      tags:
+        - product
+      summary: Upload file lên MinIO
+      description: Tải lên một file và lưu vào MinIO.
+      operationId: uploadFile
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Upload thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Upload thành công!"
+                  fileName:
+                    type: string
+                    example: "1707574829-myfile.jpg"
+        "400":
+          description: Lỗi khi không có file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Vui lòng chọn file!"
+        "500":
+          description: Lỗi server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Lỗi từ máy chủ"
+
+  /api/download/{id}:
+    get:
+      tags:
+        - product
+      summary: Tải xuống file từ MinIO
+      description: Lấy thông tin file dựa trên ID và cung cấp đường dẫn tải xuống.
+      operationId: downloadFile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID của file trong bảng `product`
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Trả về thông tin file và đường dẫn tải xuống
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  fileName:
+                    type: string
+                    example: "document.pdf"
+                  fileUrl:
+                    type: string
+                    example: "http://127.0.0.1:9000/bucket-name/document.pdf"
+        "404":
+          description: Không tìm thấy file
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "File không tồn tại"
+        "500":
+          description: Lỗi server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Lỗi khi tải file"
+                  details:
+                    type: string
+                    example: "Chi tiết lỗi..."

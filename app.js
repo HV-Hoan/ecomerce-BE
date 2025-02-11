@@ -7,6 +7,7 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path = require('path');
 
+
 require('dotenv').config();
 const TOKEN = process.env.TOKEN;
 
@@ -74,5 +75,7 @@ app.post('/register', async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
+
+
 
 app.listen(5000, () => console.log('Server chạy trên cổng 5000'));
