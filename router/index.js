@@ -9,4 +9,7 @@ const product = require('../router/productRouter');
 router.use('', product);
 
 
+const category = require("../router/categoryRouter");
+router.use('', category);
+
 module.exports = router;

@@ -21,7 +21,7 @@ app.use(express.static('public'));
 
 
 
-//nhảy vào giao diện yaml (swagger)
+//nhảy vào giao diện swagger
 const YAML = require('yamljs');
 const swaggerDocument = YAML.load(path.join(__dirname, 'router/api_docs.yaml'));
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -29,10 +29,6 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 var indexRouter = require("./router/index");
 app.use('/api', indexRouter);
 
-
-app.get('/public_view', (req, res) => {
-    res.render('home');
-});
 
 
 const User = require("./model/User");
@@ -75,7 +71,5 @@ app.post('/register', async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
-
-
 
 app.listen(5000, () => console.log('Server chạy trên cổng 5000'));
