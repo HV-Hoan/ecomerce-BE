@@ -72,4 +72,4 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.listen(5000, () => console.log('Server chạy trên cổng 5000'));
+app.listen(5000, () => console.log('Swagger trên link http://localhost:5000/api-docs/'));

@@ -1,26 +1,24 @@
 openapi: 3.0.3
 info:
-  title: hoan_test
-  description: OpenAPI 3.0
+  title: Ecomerce by me
+  description: OpenAPI 3.0 Documentation
   version: 1.0.11
 servers:
   - url: "http://localhost:5000"
 tags:
   - name: user
-    description: Operations about user
+    description: User operations
   - name: product
-    description: Operations about user
+    description: Product operations
 paths:
   /api/user:
     get:
-      tags:
-        - user
+      tags: [user]
       summary: Lấy danh sách người dùng
-      description: Chức năng lấy danh sách người dùng từ MySQL
       operationId: getUserList
       responses:
         "200":
-          description: Lấy danh sách thành công
+          description: Thành công
           content:
             application/json:
               schema:
@@ -28,23 +26,12 @@ paths:
                 items:
                   type: object
                   properties:
-                    id:
-                      type: integer
-                      example: 1
-                    username:
-                      type: string
-                      example: "john_doe"
-                    userRole:
-                      type: string
-                      example: "admin"
-        "500":
-          description: Lỗi server
-
+                    id: { type: integer, example: 1 }
+                    username: { type: string, example: "john_doe" }
+                    userRole: { type: string, example: "admin" }
     post:
-      tags:
-        - user
-      summary: Thêm người dùng mới vào MySQL
-      description: API dùng để thêm người dùng vào hệ thống
+      tags: [user]
+      summary: Thêm người dùng mới
       operationId: createUser
       requestBody:
         required: true
@@ -53,116 +40,55 @@ paths:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                  example: "john_doe"
-                password:
-                  type: string
-                  example: "123456"
-                userRole:
-                  type: string
-                  example: "admin"
+                username: { type: string, example: "john_doe" }
+                password: { type: string, example: "123456" }
+                userRole: { type: string, example: "admin" }
       responses:
         "201":
-          description: Người dùng được tạo thành công
+          description: Thành công
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: "Thêm thành công!"
-                  id:
-                    type: integer
-                    example: 1
-        "400":
-          description: Dữ liệu đầu vào không hợp lệ
-        "500":
-          description: Lỗi server
-  /api/user/{id}:
-    delete:
-      tags:
-        - user
-      summary: Xóa người dùng theo ID
-      description: API dùng để xóa người dùng trong hệ thống bằng ID
-      operationId: deleteUser
-      parameters:
-        - name: id
-          in: path
-          description: ID của người dùng cần xóa
-          required: true
-          schema:
-            type: integer
-            example: 1
-      responses:
-        "200":
-          description: Xóa người dùng thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "Xóa thành công!"
-        "404":
-          description: Không tìm thấy người dùng
-        "500":
-          description: Lỗi server
+                  message: { type: string, example: "Thêm thành công!" }
+                  id: { type: integer, example: 1 }
 
-    put:
-      tags:
-        - user
-      summary: Cập nhật thông tin người dùng
-      description: API dùng để cập nhật người dùng trong hệ thống bằng ID
-      operationId: updateUser
-      parameters:
-        - name: id
-          in: path
-          description: ID của người dùng cần cập nhật
-          required: true
-          schema:
-            type: integer
-            example: 1
-      requestBody: # ✅ Thêm requestBody để định nghĩa dữ liệu đầu vào
-        description: Dữ liệu cập nhật người dùng
+  /api/product:
+    post:
+      tags: [product]
+      summary: Thêm sản phẩm mới
+      operationId: addProduct
+      requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                username:
-                  type: string
-                  example: "new_username"
-                password:
-                  type: string
-                  example: "12345"
+                file_name: { type: string, example: "example-file.pdf" }
+                description: { type: string, example: "Mô tả sản phẩm" }
+                file_url:
+                  {
+                    type: string,
+                    example: "http://localhost:9000/bucket-name/example.pdf",
+                  }
+                id_Category: { type: integer, example: 1 }
       responses:
-        "200":
-          description: Cập nhật người dùng thành công
+        "201":
+          description: Thêm sản phẩm thành công
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: "Cập nhật thành công!"
-        "400":
-          description: Yêu cầu không hợp lệ
-        "404":
-          description: Không tìm thấy người dùng
-        "500":
-          description: Lỗi server
+                  status: { type: integer, example: 201 }
+                  message: { type: string, example: "Thêm sản phẩm thành công" }
 
   /api/upload:
     post:
-      tags:
-        - product
+      tags: [product]
       summary: Upload file lên MinIO
-      description: Tải lên một file và lưu vào MinIO.
       operationId: uploadFile
       requestBody:
         required: true
@@ -171,9 +97,7 @@ paths:
             schema:
               type: object
               properties:
-                file:
-                  type: string
-                  format: binary
+                file: { type: string, format: binary }
       responses:
         "200":
           description: Upload thành công
@@ -182,85 +106,30 @@ paths:
               schema:
                 type: object
                 properties:
-                  message:
-                    type: string
-                    example: "Upload thành công!"
-                  fileName:
-                    type: string
-                    example: "1707574829-myfile.jpg"
-        "400":
-          description: Lỗi khi không có file
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Vui lòng chọn file!"
-        "500":
-          description: Lỗi server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Lỗi từ máy chủ"
+                  message: { type: string, example: "Upload thành công!" }
+                  fileName: { type: string, example: "1707574829-myfile.jpg" }
 
-  /api/download/{id}:
+  /api/download/{file_name}:
     get:
-      tags:
-        - product
+      tags: [product]
       summary: Tải xuống file từ MinIO
-      description: Lấy thông tin file dựa trên ID và cung cấp đường dẫn tải xuống.
       operationId: downloadFile
       parameters:
-        - name: id
+        - name: file_name
           in: path
           required: true
-          description: ID của file trong bảng `product`
-          schema:
-            type: integer
-            example: 1
+          schema: { type: string, example: "document.pdf" }
       responses:
         "200":
-          description: Trả về thông tin file và đường dẫn tải xuống
+          description: Trả về thông tin file
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    example: true
-                  fileName:
-                    type: string
-                    example: "document.pdf"
+                  fileName: { type: string, example: "document.pdf" }
                   fileUrl:
-                    type: string
-                    example: "http://127.0.0.1:9000/bucket-name/document.pdf"
-        "404":
-          description: Không tìm thấy file
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "File không tồn tại"
-        "500":
-          description: Lỗi server
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Lỗi khi tải file"
-                  details:
-                    type: string
-                    example: "Chi tiết lỗi..."
+                    {
+                      type: string,
+                      example: "http://localhost:9000/bucket-name/document.pdf",
+                    }

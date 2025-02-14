@@ -11,9 +11,23 @@ const Product = sequelize.define("Product", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    description: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     file_url: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
+    },
+    id_Category: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: "category",
+            key: "id_Category"
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE"
     }
 }, {
     tableName: "product",
