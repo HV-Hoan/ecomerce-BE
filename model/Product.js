@@ -1,13 +1,14 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./connect");
+const ProductCategory = require("./ProductCategory");
 
 const Product = sequelize.define("Product", {
-    id: {
+    id_Product: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
     },
-    file_name: {
+    name_Product: {
         type: DataTypes.STRING,
         allowNull: false
     },
@@ -15,23 +16,26 @@ const Product = sequelize.define("Product", {
         type: DataTypes.STRING,
         allowNull: true
     },
-    file_url: {
+    status_Product: {
+        type: DataTypes.ENUM("0", "1"), // 0 là còn hàng, 1 là hết hàng
+        defaultValue: "0"
+    },
+    image_Product: {
         type: DataTypes.STRING,
         allowNull: true
-    },
-    id_Category: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: "category",
-            key: "id_Category"
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE"
     }
 }, {
     tableName: "product",
     timestamps: false
 });
+
+Product.associate = () => {
+    const Category = require("./Category");
+    Product.belongsToMany(Category, {
+        through: ProductCategory,
+        foreignKey: "id_Product",
+        otherKey: "id_Category"
+    });
+};
 
 module.exports = Product;

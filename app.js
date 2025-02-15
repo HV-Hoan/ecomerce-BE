@@ -30,6 +30,14 @@ var indexRouter = require("./router/index");
 app.use('/api', indexRouter);
 
 
+const Product = require("./model/Product");
+const Category = require("./model/Category");
+
+// Gọi các hàm associate sau khi định nghĩa tất cả các model
+Product.associate();
+Category.associate();
+
+
 
 const User = require("./model/User");
 app.post("/login", async (req, res) => {
