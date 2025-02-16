@@ -13,6 +13,34 @@ const pool = mysql.createPool({
 const cors = require('cors');
 router.use(cors({ origin: "*" }));
 
+const JWT_SECRET = process.env.TOKEN;
+
+// API trả về role
+router.get("/api/get-role", (req, res) => {
+    // Lấy token từ header
+    const token = req.headers.authorization?.split(" ")[1]; // "Bearer <token>"
+    if (!token) {
+        return res.status(401).json({ message: "Token không được cung cấp" });
+    }
+
+    try {
+        // Giải mã token
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const { role } = decoded;
+
+        if (!role) {
+            return res.status(400).json({ message: "Không tìm thấy role trong token" });
+        }
+
+        // Trả về thông tin role
+        return res.status(200).json({ role });
+    } catch (err) {
+        console.error("Lỗi khi xác thực token:", err);
+        return res.status(401).json({ message: "Token không hợp lệ" });
+    }
+});
+
+
 router.get('/user', async (req, res) => {
     const showList = await User.findAll();
     return res.status(200).json({

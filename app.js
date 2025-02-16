@@ -8,6 +8,7 @@ const cors = require('cors');
 const path = require('path');
 
 
+
 require('dotenv').config();
 const TOKEN = process.env.TOKEN;
 
@@ -37,9 +38,8 @@ const Category = require("./model/Category");
 Product.associate();
 Category.associate();
 
-
-
 const User = require("./model/User");
+
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -47,13 +47,15 @@ app.post("/login", async (req, res) => {
         if (!user) {
             return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
         }
-        if (password !== user.password) {
+        // So sánh mật khẩu đã hash
+        const isPasswordMatch = await bcrypt.compare(password, user.password);
+        if (!isPasswordMatch) {
             return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
         }
+        // Tạo token với thông tin role
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.userRole },
+            { id: user.id, username: user.username, role: user.userRole }, // Role được bao gồm trong payload
             TOKEN,
-
             { expiresIn: "1h" }
         );
         res.json({ token });
@@ -63,14 +65,23 @@ app.post("/login", async (req, res) => {
     }
 });
 
+
+
 app.post('/register', async (req, res) => {
     const { username, password, userRole = "user" } = req.body;
-    const newUser = new User({
-        username,
-        password,
-        userRole
-    });
+
     try {
+        // Mã hóa mật khẩu
+        const saltRounds = 10; // Số vòng băm (càng cao càng bảo mật nhưng chậm hơn)
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        // Tạo user mới với mật khẩu đã mã hóa
+        const newUser = new User({
+            username,
+            password: hashedPassword,
+            userRole
+        });
+
         await newUser.save();
         console.log("Đăng ký thành công", username);
         res.status(201).json({ message: "Đăng ký thành công" });
@@ -79,5 +90,6 @@ app.post('/register', async (req, res) => {
         res.status(400).json({ message: error.message });
     }
 });
+
 
 app.listen(5000, () => console.log('Swagger trên link http://localhost:5000/api-docs/'));

@@ -6,11 +6,40 @@ info:
 servers:
   - url: "http://localhost:5000"
 tags:
+  - name: account
+    description: Account operations
   - name: user
     description: User operations
   - name: product
     description: Product operations
 paths:
+  /register:
+    post:
+      summary: Đăng ký người dùng mới
+      tags:
+        - account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: Tên đăng nhập của người dùng
+                password:
+                  type: string
+                  description: Mật khẩu của người dùng
+                userRole:
+                  type: string
+                  description: Vai trò của người dùng (mặc định là "user")
+      responses:
+        201:
+          description: Đăng ký thành công
+        400:
+          description: Lỗi khi đăng ký
+
   /api/user:
     get:
       tags: [user]

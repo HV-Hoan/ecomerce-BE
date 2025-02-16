@@ -5,6 +5,7 @@ const multer = require('multer');
 const Product = require('../model/Product');
 const Category = require('../model/Category');
 const ProductCategory = require('../model/ProductCategory');
+const CheckRole = require('../middleware/authenticateToken');
 const host_name = process.env.ENDPOINT;
 const bucketName = process.env.MINIO_BUCKETNAME;
 
@@ -78,7 +79,6 @@ router.get('/category-with-products', async (req, res) => {
 });
 
 
-// Thêm sản phẩm mới
 router.post("/product", async (req, res) => {
     const { name_Product, description, price_Product, image_Product, id_Category } = req.body;
 
@@ -87,7 +87,6 @@ router.post("/product", async (req, res) => {
     }
 
     try {
-        // Thêm sản phẩm vào bảng product
         const newProduct = await Product.create({
             name_Product,
             description,
@@ -95,7 +94,7 @@ router.post("/product", async (req, res) => {
             image_Product
         });
 
-        // Thêm từng category vào bảng product_category
+        // tthêm từng category vào bảng product_category
         for (const categoryId of id_Category) {
             const categoryExists = await Category.findByPk(categoryId);
             if (!categoryExists) {
@@ -119,5 +118,36 @@ router.post("/product", async (req, res) => {
         res.status(500).json({ error: 'Lỗi khi thêm sản phẩm', details: error.message });
     }
 });
+
+router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => {
+    const { productId, categoryId } = req.params;
+
+    try {
+        // Kiểm tra sự tồn tại của product và category
+        const productCategory = await ProductCategory.findOne({
+            where: {
+                id_Product: productId,
+                id_Category: categoryId
+            }
+        });
+
+        if (!productCategory) {
+            return res.status(404).json({ error: "Sản phẩm hoặc danh mục không tồn tại" });
+        }
+
+        // Xóa mối quan hệ giữa product và category trong bảng ProductCategory
+        await productCategory.destroy();
+
+        // Xóa sản phẩm nếu cần (nếu không muốn xóa hoàn toàn, chỉ xóa liên kết thì bỏ phần này)
+        await Product.destroy({ where: { id_Product: productId } });
+
+        res.status(200).json({ message: "Xóa sản phẩm thành công" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Có lỗi xảy ra khi xóa sản phẩm" });
+    }
+});
+
+module.exports = router;
 
 module.exports = router;
