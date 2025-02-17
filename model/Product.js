@@ -12,6 +12,10 @@ const Product = sequelize.define("Product", {
         type: DataTypes.STRING,
         allowNull: false
     },
+    price_Product: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     description: {
         type: DataTypes.STRING,
         allowNull: true
@@ -23,7 +27,16 @@ const Product = sequelize.define("Product", {
     image_Product: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    rating: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0
+    },
+    ratingCount: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0
     }
+
 }, {
     tableName: "product",
     timestamps: false

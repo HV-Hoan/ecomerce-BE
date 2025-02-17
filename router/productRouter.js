@@ -147,7 +147,54 @@ router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => 
         res.status(500).json({ error: "Có lỗi xảy ra khi xóa sản phẩm" });
     }
 });
+router.post("/product/:productId/rate", async (req, res) => {
+    const { productId } = req.params;
+    const { rating } = req.body;
 
-module.exports = router;
+    try {
+        // Lấy sản phẩm từ cơ sở dữ liệu
+        const product = await Product.findByPk(productId);
+        if (!product) {
+            return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+        }
+
+        // Tính toán đánh giá trung bình mới
+        const totalRating = product.rating * product.ratingCount + rating;
+        const newRatingCount = product.ratingCount + 1;
+        const newAverageRating = totalRating / newRatingCount;
+
+        // Cập nhật sản phẩm
+        product.rating = newAverageRating;
+        product.ratingCount = newRatingCount;
+
+        await product.save();
+
+        res.json({ message: "Đánh giá thành công", rating: newAverageRating });
+    } catch (error) {
+        console.error("Lỗi khi đánh giá:", error);
+        res.status(500).json({ message: "Có lỗi xảy ra khi đánh giá sản phẩm" });
+    }
+});
+// Ví dụ route API trong Node.js
+router.get("/top-rated-products", async (req, res) => {
+    try {
+        // truy vấn danh sách sản phẩm theo rating giảm dần và giới hạn số lượng kết quả
+        const topRatedProducts = await Product.findAll({
+            attributes: ["id_Product", "name_Product", "image_Product", "rating", "ratingCount"],
+            order: [
+                ["rating", "DESC"],
+                ["ratingCount", "DESC"]
+            ],
+            limit: 4
+        });
+
+        res.json({ products: topRatedProducts });
+    } catch (error) {
+        console.error("Lỗi khi lấy danh sách sản phẩm:", error);
+        res.status(500).json({ error: "Có lỗi xảy ra khi lấy danh sách sản phẩm" });
+    }
+});
+
+
 
 module.exports = router;
