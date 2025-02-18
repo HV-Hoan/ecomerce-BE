@@ -120,14 +120,12 @@ router.post("/product", async (req, res) => {
 });
 router.delete("/product/:id", async (req, res) => {
     const productId = req.params.id;
-
     try {
         // kiểm tra nếu sản phẩm có trong database k
         const product = await Product.findByPk(productId);
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại." });
         }
-
         // kiểm tra xem sản phẩm có đang được sử dụng trong bảng khác (foreign key constraint)
         const productCategory = await ProductCategory.findOne({ where: { id_Product: productId } });
         if (productCategory) {
