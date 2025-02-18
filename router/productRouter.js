@@ -118,7 +118,38 @@ router.post("/product", async (req, res) => {
         res.status(500).json({ error: 'Lỗi khi thêm sản phẩm', details: error.message });
     }
 });
+router.delete("/product/:id", async (req, res) => {
+    const productId = req.params.id;
 
+    try {
+        // kiểm tra nếu sản phẩm có trong database k
+        const product = await Product.findByPk(productId);
+        if (!product) {
+            return res.status(404).json({ message: "Sản phẩm không tồn tại." });
+        }
+
+        // kiểm tra xem sản phẩm có đang được sử dụng trong bảng khác (foreign key constraint)
+        const productCategory = await ProductCategory.findOne({ where: { id_Product: productId } });
+        if (productCategory) {
+            await ProductCategory.destroy({ where: { id_Product: productId } });
+            console.log("Đã xóa các liên kết trong ProductCategory");
+
+            // tiến hành xóa sản phẩm sau khi đã xử lý liên kết
+            await product.destroy();
+            return res.status(200).json({ message: "Xóa sản phẩm và các liên kết thành công." });
+        }
+
+        // xóa sản phẩm nếu không có liên kết
+        await product.destroy();
+        return res.status(200).json({ message: "Xóa sản phẩm thành công." });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Có lỗi xảy ra khi xóa sản phẩm." });
+    }
+});
+
+// co ca category
 router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => {
     const { productId, categoryId } = req.params;
 
@@ -163,7 +194,7 @@ router.post("/product/:productId/rate", async (req, res) => {
         const newRatingCount = product.ratingCount + 1;
         const newAverageRating = totalRating / newRatingCount;
 
-        // Cập nhật sản phẩm
+
         product.rating = newAverageRating;
         product.ratingCount = newRatingCount;
 
@@ -175,7 +206,7 @@ router.post("/product/:productId/rate", async (req, res) => {
         res.status(500).json({ message: "Có lỗi xảy ra khi đánh giá sản phẩm" });
     }
 });
-// Ví dụ route API trong Node.js
+
 router.get("/top-rated-products", async (req, res) => {
     try {
         // truy vấn danh sách sản phẩm theo rating giảm dần và giới hạn số lượng kết quả

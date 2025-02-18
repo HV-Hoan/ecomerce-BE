@@ -1,4 +1,3 @@
-// Middleware xác thực token (ví dụ trong file authMiddleware.js)
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
 const TOKEN = process.env.TOKEN
