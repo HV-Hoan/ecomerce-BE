@@ -30,17 +30,14 @@ const Product = sequelize.define("Product", {
     },
     rating: {
         type: DataTypes.FLOAT,
-        defaultValue: 0
-    },
-    ratingCount: {
-        type: DataTypes.INTEGER,
+        allowNull: true,
         defaultValue: 0
     }
-
 }, {
     tableName: "product",
     timestamps: false
 });
+
 
 Product.associate = () => {
     const Category = require("./Category");

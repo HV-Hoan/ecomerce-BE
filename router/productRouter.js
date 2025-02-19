@@ -5,6 +5,7 @@ const multer = require('multer');
 const Product = require('../model/Product');
 const Category = require('../model/Category');
 const ProductCategory = require('../model/ProductCategory');
+const Vote = require('../model/Vote');
 const CheckRole = require('../middleware/authenticateToken');
 const host_name = process.env.ENDPOINT;
 const bucketName = process.env.MINIO_BUCKETNAME;
@@ -77,7 +78,6 @@ router.get('/category-with-products', async (req, res) => {
         return res.status(500).json({ error: 'Lỗi khi lấy danh sách', details: error.message });
     }
 });
-
 
 router.post("/product", upload.single("image_Product"), async (req, res) => {
     const { name_Product, description, price_Product, id_Category } = req.body;
@@ -172,8 +172,6 @@ router.put("/product/:id", upload.single('image_Product'), async (req, res) => {
     }
 });
 
-
-
 router.delete("/product/:id", async (req, res) => {
     const productId = req.params.id;
     try {
@@ -201,7 +199,6 @@ router.delete("/product/:id", async (req, res) => {
         return res.status(500).json({ message: "Có lỗi xảy ra khi xóa sản phẩm." });
     }
 });
-
 // co ca category
 router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => {
     const { productId, categoryId } = req.params;
@@ -229,32 +226,6 @@ router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => 
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Có lỗi xảy ra khi xóa sản phẩm" });
-    }
-});
-router.post("/product/:productId/rate", async (req, res) => {
-    const { productId } = req.params;
-    const { rating } = req.body;
-    try {
-        const product = await Product.findByPk(productId);
-        if (!product) {
-            return res.status(404).json({ message: "Sản phẩm không tồn tại" });
-        }
-
-        // tính toán đánh giá trung bình mới
-        const totalRating = product.rating * product.ratingCount + rating;
-        const newRatingCount = product.ratingCount + 1;
-        const newAverageRating = totalRating / newRatingCount;
-
-
-        product.rating = newAverageRating;
-        product.ratingCount = newRatingCount;
-
-        await product.save();
-
-        res.json({ message: "Đánh giá thành công", rating: newAverageRating });
-    } catch (error) {
-        console.error("Lỗi khi đánh giá:", error);
-        res.status(500).json({ message: "Có lỗi xảy ra khi đánh giá sản phẩm" });
     }
 });
 

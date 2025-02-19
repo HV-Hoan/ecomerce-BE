@@ -12,4 +12,8 @@ router.use('', product);
 const category = require("../router/categoryRouter");
 router.use('', category);
 
+
+const vote = require("../router/voteRouter");
+router.use('', vote);
+
 module.exports = router;

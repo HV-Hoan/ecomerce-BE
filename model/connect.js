@@ -7,7 +7,7 @@ const sequelize = new Sequelize
         process.env.DB_USER,
         process.env.DB_PASSWORD,
         {
-            host: "103.75.185.110",
+            host: "160.30.21.71",
             dialect: "mysql",
             logging: false,
         });
