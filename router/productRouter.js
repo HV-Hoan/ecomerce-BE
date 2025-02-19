@@ -79,14 +79,27 @@ router.get('/category-with-products', async (req, res) => {
 });
 
 
-router.post("/product", async (req, res) => {
-    const { name_Product, description, price_Product, image_Product, id_Category } = req.body;
+router.post("/product", upload.single("image_Product"), async (req, res) => {
+    const { name_Product, description, price_Product, id_Category } = req.body;
 
     if (!Array.isArray(id_Category) || id_Category.length === 0) {
         return res.status(400).json({ error: 'Vui lòng cung cấp ít nhất một category cho sản phẩm.' });
     }
 
     try {
+        let image_Product = null;
+        if (req.file) {
+            const file = req.file;
+            const objectName = Date.now() + '-' + file.originalname;
+
+            await minioClient.putObject(bucketName, objectName, file.buffer, file.size, {
+                'Content-Type': file.mimetype
+            });
+
+            image_Product = `http://${host_name}:9000/${bucketName}/${objectName}`;
+        }
+
+        // Tạo sản phẩm mới
         const newProduct = await Product.create({
             name_Product,
             description,
@@ -94,7 +107,7 @@ router.post("/product", async (req, res) => {
             image_Product
         });
 
-        // tthêm từng category vào bảng product_category
+        // Thêm từng category vào bảng product_category
         for (const categoryId of id_Category) {
             const categoryExists = await Category.findByPk(categoryId);
             if (!categoryExists) {
@@ -118,15 +131,57 @@ router.post("/product", async (req, res) => {
         res.status(500).json({ error: 'Lỗi khi thêm sản phẩm', details: error.message });
     }
 });
+
+//sua product
+router.put("/product/:id", upload.single('image_Product'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name_Product, price_Product, description, status_Product } = req.body;
+
+        const product = await Product.findByPk(id);
+        if (!product) {
+            return res.status(404).json({ message: 'Sản phẩm không tồn tại' });
+        }
+
+        let newImageUrl = product.image_Product;
+
+        if (req.file) {
+            const file = req.file;
+            const objectName = Date.now() + '-' + file.originalname;
+
+
+            await minioClient.putObject(bucketName, objectName, file.buffer, file.size, {
+                'Content-Type': file.mimetype
+            });
+
+            newImageUrl = `http://${host_name}:9000/${bucketName}/${objectName}`;
+        }
+
+        await product.update({
+            name_Product,
+            price_Product,
+            description,
+            status_Product,
+            image_Product: newImageUrl
+        });
+
+        res.json({ message: 'Cập nhật sản phẩm thành công' });
+    } catch (error) {
+        console.error("Lỗi khi cập nhật sản phẩm:", error);
+        res.status(500).json({ message: 'Lỗi khi cập nhật sản phẩm', details: error.message });
+    }
+});
+
+
+
 router.delete("/product/:id", async (req, res) => {
     const productId = req.params.id;
     try {
-        // kiểm tra nếu sản phẩm có trong database k
         const product = await Product.findByPk(productId);
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại." });
         }
-        // kiểm tra xem sản phẩm có đang được sử dụng trong bảng khác (foreign key constraint)
+        // kiểm tra xem sản phẩm có đang được sử dụng trong bảng khác k (foreign key constraint)
         const productCategory = await ProductCategory.findOne({ where: { id_Product: productId } });
         if (productCategory) {
             await ProductCategory.destroy({ where: { id_Product: productId } });
@@ -164,10 +219,10 @@ router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => 
             return res.status(404).json({ error: "Sản phẩm hoặc danh mục không tồn tại" });
         }
 
-        // Xóa mối quan hệ giữa product và category trong bảng ProductCategory
+        // xóa mối quan hệ giữa product và category trong bảng ProductCategory
         await productCategory.destroy();
 
-        // Xóa sản phẩm nếu cần (nếu không muốn xóa hoàn toàn, chỉ xóa liên kết thì bỏ phần này)
+        // xóa sản phẩm nếu cần (nếu không muốn xóa hoàn toàn, chỉ xóa liên kết thì bỏ phần này)
         await Product.destroy({ where: { id_Product: productId } });
 
         res.status(200).json({ message: "Xóa sản phẩm thành công" });
@@ -179,15 +234,13 @@ router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => 
 router.post("/product/:productId/rate", async (req, res) => {
     const { productId } = req.params;
     const { rating } = req.body;
-
     try {
-        // Lấy sản phẩm từ cơ sở dữ liệu
         const product = await Product.findByPk(productId);
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại" });
         }
 
-        // Tính toán đánh giá trung bình mới
+        // tính toán đánh giá trung bình mới
         const totalRating = product.rating * product.ratingCount + rating;
         const newRatingCount = product.ratingCount + 1;
         const newAverageRating = totalRating / newRatingCount;
