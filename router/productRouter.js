@@ -62,6 +62,16 @@ router.get('/product', async (req, res) => {
         res.status(500).json({ error: 'Lỗi khi lấy danh sách sản phẩm', details: error.message });
     }
 });
+router.get("/product/:id", async (req, res) => {
+    const { id } = req.params;
+    const findbyID = await Product.findByPk(id);
+    res.status(200).json({
+        status: 200,
+        message: "Lấy dữ liệu thành công",
+        findbyID
+    });
+
+})
 
 // API lấy danh mục cùng sản phẩm liên quan
 router.get('/category-with-products', async (req, res) => {
@@ -179,26 +189,16 @@ router.delete("/product/:id", async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại." });
         }
-        // kiểm tra xem sản phẩm có đang được sử dụng trong bảng khác k (foreign key constraint)
-        const productCategory = await ProductCategory.findOne({ where: { id_Product: productId } });
-        if (productCategory) {
-            await ProductCategory.destroy({ where: { id_Product: productId } });
-            console.log("Đã xóa các liên kết trong ProductCategory");
 
-            // tiến hành xóa sản phẩm sau khi đã xử lý liên kết
-            await product.destroy();
-            return res.status(200).json({ message: "Xóa sản phẩm và các liên kết thành công." });
-        }
-
-        // xóa sản phẩm nếu không có liên kết
+        // Xóa sản phẩm, các bản ghi liên quan trong bảng vote sẽ tự động bị xóa nếu `ON DELETE CASCADE` được cấu hình đúng
         await product.destroy();
-        return res.status(200).json({ message: "Xóa sản phẩm thành công." });
-
+        return res.status(200).json({ message: "Xóa sản phẩm và các liên kết thành công." });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Có lỗi xảy ra khi xóa sản phẩm." });
     }
 });
+
 // co ca category
 router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => {
     const { productId, categoryId } = req.params;

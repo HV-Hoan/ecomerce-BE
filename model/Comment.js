@@ -12,12 +12,16 @@ const Comment = sequelize.define('Comment', {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
+    id_Product: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
     comment: {
         type: DataTypes.STRING(255),
         allowNull: false,
     },
 }, {
-    tableName: 'Comment',
+    tableName: 'comment',
     timestamps: false,
 });
 
