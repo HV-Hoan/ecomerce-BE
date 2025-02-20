@@ -229,25 +229,5 @@ router.delete("/product/:productId/:categoryId", CheckRole, async (req, res) => 
     }
 });
 
-router.get("/top-rated-products", async (req, res) => {
-    try {
-        // truy vấn danh sách sản phẩm theo rating giảm dần và giới hạn số lượng kết quả
-        const topRatedProducts = await Product.findAll({
-            attributes: ["id_Product", "name_Product", "image_Product", "rating", "ratingCount"],
-            order: [
-                ["rating", "DESC"],
-                ["ratingCount", "DESC"]
-            ],
-            limit: 4
-        });
-
-        res.json({ products: topRatedProducts });
-    } catch (error) {
-        console.error("Lỗi khi lấy danh sách sản phẩm:", error);
-        res.status(500).json({ error: "Có lỗi xảy ra khi lấy danh sách sản phẩm" });
-    }
-});
-
-
 
 module.exports = router;

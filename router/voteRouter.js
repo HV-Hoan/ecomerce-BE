@@ -29,8 +29,8 @@ router.get("/vote", async (req, res) => {
         });
     }
 });
-// Route để người dùng đánh giá sản phẩm
-// Route để người dùng đánh giá sản phẩm
+
+// API POST để đánh giá sản phẩm
 // API POST để đánh giá sản phẩm
 router.post("/vote/:productId/rate", authenticateToken, async (req, res) => {
     const { productId } = req.params;  // Lấy id sản phẩm từ URL
@@ -54,32 +54,33 @@ router.post("/vote/:productId/rate", authenticateToken, async (req, res) => {
         }
 
         // Thêm đánh giá mới vào bảng vote
-        const newVote = await Vote.create({
+        await Vote.create({
             rating: parseFloat(rating),  // Chuyển rating thành float
             id: userId,  // id người dùng
             id_Product: productId,  // id sản phẩm
         });
 
-        // Tính toán rating trung bình của sản phẩm trong bảng vote
+        // Tính toán rating trung bình và tổng số lượt đánh giá của sản phẩm
         const result = await Vote.findAll({
             where: { id_Product: productId },
-            attributes: [[sequelize.fn("AVG", sequelize.col("rating")), "averageRating"]],  // Tính trung bình
+            attributes: [
+                [sequelize.fn("AVG", sequelize.col("rating")), "averageRating"],  // Tính trung bình rating
+                [sequelize.fn("COUNT", sequelize.col("id_Vote")), "ratingCount"], // Tính tổng số lượt đánh giá
+            ],
             raw: true,
         });
 
-        // Lấy rating trung bình, nếu không có thì gán bằng 0
-        const averageRating = result[0]?.averageRating
-            ? parseFloat(result[0].averageRating).toFixed(2)
-            : 0;
+        const averageRating = result[0]?.averageRating ? parseFloat(result[0].averageRating).toFixed(2) : 0;
+        const ratingCount = result[0]?.ratingCount ? parseInt(result[0].ratingCount, 10) : 0;
 
-        // Cập nhật cột averageRating trong bảng vote
+        // Cập nhật cột averageRating và ratingCount trong bảng vote
         await Vote.update(
-            { averageRating: averageRating },
+            { averageRating: averageRating, ratingCount: ratingCount },
             { where: { id_Product: productId } }
         );
 
-        // Trả về kết quả đánh giá trung bình dưới dạng JSON
-        res.json({ averageRating });
+        // Trả về kết quả đánh giá trung bình và tổng số lượt đánh giá
+        res.json({ averageRating, ratingCount });
     } catch (error) {
         console.error("Lỗi khi đánh giá sản phẩm:", error);
         res.status(500).json({ message: "Có lỗi xảy ra khi đánh giá sản phẩm." });
@@ -87,9 +88,7 @@ router.post("/vote/:productId/rate", authenticateToken, async (req, res) => {
 });
 
 
-
-
-
+// API lấy danh sách top-rated sản phẩm, sắp xếp theo ratingCount giảm dần
 router.get("/top-rated-products", async (req, res) => {
     try {
         const topRatedProducts = await Product.findAll({
@@ -97,16 +96,24 @@ router.get("/top-rated-products", async (req, res) => {
                 include: [
                     [
                         sequelize.literal(`(
-                            SELECT AVG(rating)
-                            FROM vote
-                            WHERE vote.id_Product = Product.id_Product
+                            SELECT AVG(v.rating)
+                            FROM vote v
+                            WHERE v.id_Product = Product.id_Product
                         )`),
                         "averageRating"
+                    ],
+                    [
+                        sequelize.literal(`(
+                            SELECT COUNT(v.id_Vote)
+                            FROM vote v
+                            WHERE v.id_Product = Product.id_Product
+                        )`),
+                        "ratingCount"
                     ]
                 ]
             },
-            order: [[sequelize.literal("averageRating"), "DESC"]],
-            limit: 4,
+            order: [[sequelize.literal("ratingCount"), "DESC"]],  // Sắp xếp theo ratingCount giảm dần
+            limit: 4
         });
 
         if (!topRatedProducts || topRatedProducts.length === 0) {
