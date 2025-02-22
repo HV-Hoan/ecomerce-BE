@@ -5,7 +5,6 @@ const multer = require('multer');
 const Product = require('../model/Product');
 const Category = require('../model/Category');
 const ProductCategory = require('../model/ProductCategory');
-const Vote = require('../model/Vote');
 const CheckRole = require('../middleware/authenticateToken');
 const host_name = process.env.ENDPOINT;
 const bucketName = process.env.MINIO_BUCKETNAME;
@@ -52,16 +51,20 @@ router.get('/download/:file_name', async (req, res) => {
 // Lấy danh sách sản phẩm
 router.get('/product', async (req, res) => {
     try {
-        const list_Product = await Product.findAll();
+        const list_Product = await Product.findAll({
+            order: [["id_Product", "DESC"]],
+        });
+
         res.status(200).json({
             status: 200,
             message: "Lấy dữ liệu thành công",
             list_Product
         });
     } catch (error) {
-        res.status(500).json({ error: 'Lỗi khi lấy danh sách sản phẩm', details: error.message });
+        res.status(500).json({ error: "Lỗi khi lấy danh sách sản phẩm", details: error.message });
     }
 });
+
 router.get("/product/:id", async (req, res) => {
     const { id } = req.params;
     const findbyID = await Product.findByPk(id);

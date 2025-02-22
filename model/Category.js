@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("./connect");
-const Product = require("./Product"); // Import Product để thiết lập quan hệ
 const ProductCategory = require("./ProductCategory"); // Import bảng trung gian
 
 const Category = sequelize.define("Category", {

@@ -31,7 +31,6 @@ router.get("/vote", async (req, res) => {
 });
 
 // API POST để đánh giá sản phẩm
-// API POST để đánh giá sản phẩm
 router.post("/vote/:productId/rate", authenticateToken, async (req, res) => {
     const { productId } = req.params;  // Lấy id sản phẩm từ URL
     const { rating } = req.body;  // Lấy rating từ body

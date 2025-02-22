@@ -16,4 +16,9 @@ router.use('', category);
 const vote = require("../router/voteRouter");
 router.use('', vote);
 
+
+const comment = require("../router/commentRouter");
+router.use('', comment);
+
+
 module.exports = router;
