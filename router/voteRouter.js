@@ -30,6 +30,24 @@ router.get("/vote", async (req, res) => {
     }
 });
 
+router.get("/vote/:id_Product", async (req, res) => {
+    try {
+        const { id_Product } = req.params;
+        const vote = await Vote.findOne({
+            where: { id_Product },
+            attributes: ["averageRating"], // Chỉ lấy averageRating
+        });
+
+        if (!vote) {
+            return res.json({ averageRating: 0 }); // Trả về 0 nếu không có dữ liệu
+        }
+
+        res.json({ averageRating: vote.averageRating });
+    } catch (error) {
+        console.error("Lỗi khi lấy đánh giá sản phẩm:", error);
+        res.status(500).json({ message: "Lỗi server" });
+    }
+});
 // API POST để đánh giá sản phẩm
 router.post("/vote/:productId/rate", authenticateToken, async (req, res) => {
     const { productId } = req.params;  // Lấy id sản phẩm từ URL

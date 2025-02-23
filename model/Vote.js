@@ -28,7 +28,7 @@ const Vote = sequelize.define(
         },
         fullname: {
             type: DataTypes.STRING(255),
-            allowNull: false,
+            allowNull: true,
         },
         status: {
             type: DataTypes.ENUM("0", "1"),
