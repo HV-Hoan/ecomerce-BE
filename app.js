@@ -1,6 +1,5 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
-// const swaggerJsdoc = require('swagger-jsdoc');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
@@ -47,14 +46,12 @@ app.post("/login", async (req, res) => {
         if (!user) {
             return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
         }
-        // So sánh mật khẩu đã hash
         const isPasswordMatch = await bcrypt.compare(password, user.password);
         if (!isPasswordMatch) {
             return res.status(401).json({ message: "Sai tên đăng nhập hoặc mật khẩu" });
         }
-        // Tạo token với thông tin role
         const token = jwt.sign(
-            { id: user.id, username: user.username, role: user.userRole }, // Role được bao gồm trong payload
+            { id: user.id, username: user.username, role: user.userRole },
             TOKEN,
             { expiresIn: "1h" }
         );
@@ -68,17 +65,16 @@ app.post("/login", async (req, res) => {
 
 
 app.post('/register', async (req, res) => {
-    const { username, password, userRole = "user" } = req.body;
+    const { username, password, email, userRole = "user" } = req.body;
 
     try {
-        // Mã hóa mật khẩu
-        const saltRounds = 10; // Số vòng băm (càng cao càng bảo mật nhưng chậm hơn)
+        const saltRounds = 10; // Số vòng băm 
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-        // Tạo user mới với mật khẩu đã mã hóa
         const newUser = new User({
             username,
             password: hashedPassword,
+            email,
             userRole
         });
 
