@@ -1,6 +1,3 @@
-const express = require('express');
-const router = express.Router();
-const CheckRole = require('../middleware/authenticateToken');
 
 const Comment = require("../model/Comment");
 const User = require("../model/User");

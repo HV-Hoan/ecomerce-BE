@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../dbs/connect");
 const User = require("./User");
-const Product = require("./Product"); // Import model sản phẩm
+const Product = require("./Product");
 
 const Cart = sequelize.define("Cart", {
     id_Cart: {
@@ -11,7 +11,7 @@ const Cart = sequelize.define("Cart", {
     },
     price_Cart: {
         type: DataTypes.FLOAT,
-        allowNull: false
+        allowNull: true
     },
     quantity: {
         type: DataTypes.INTEGER,
@@ -21,7 +21,7 @@ const Cart = sequelize.define("Cart", {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Product, // Khóa ngoại liên kết với Product
+            model: Product,
             key: "id_Product",
         }
     },
@@ -29,7 +29,7 @@ const Cart = sequelize.define("Cart", {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User, // Khóa ngoại liên kết với User
+            model: User,
             key: "id",
         }
     }
@@ -37,5 +37,10 @@ const Cart = sequelize.define("Cart", {
     {
         tableName: "cart",
         timestamps: false,
-    })
+    });
+
+// ✅ Thiết lập mối quan hệ
+Cart.belongsTo(Product, { foreignKey: "id_Product" }); // Cart có 1 Product
+Cart.belongsTo(User, { foreignKey: "id" }); // Cart thuộc về 1 User
+
 module.exports = Cart;
