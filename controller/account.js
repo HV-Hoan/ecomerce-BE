@@ -5,11 +5,12 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 require('dotenv').config();
 const client = require("../dbs/connect_Redis");
+
 // Cấu hình email server
 const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-        user: 'rentify66668888@gmail.com',
+        user: process.env.GMAIL,
         pass: process.env.PASSWORD_GMAIL,
     }
 });
@@ -47,18 +48,18 @@ router.post("/verify-otp", async (req, res) => {
     }
 
     try {
-        // Kiểm tra xem email đã đăng ký chưa
+        // kiểm tra xem email đã đăng ký chưa
         const isRegistered = await client.get(`registered:${email}`);
         if (isRegistered) {
             return res.status(400).json({ success: false, message: "Email này đã được đăng ký!" });
         }
 
-        // Lấy OTP từ Redis
+        // lấy OTP từ Redis
         const storedOtp = await client.get(email);
         if (storedOtp === otp) {
-            // Xác thực thành công, đánh dấu email đã đăng ký
-            await client.set(`registered:${email}`, "true"); // Đánh dấu email đã đăng ký
-            await client.del(email); // Xóa OTP sau khi xác thực thành công
+            // xác thực thành công, đánh dấu email đã đăng ký
+            await client.set(`registered:${email}`, "true"); // đánh dấu email đã đăng ký
+            await client.del(email); // xóa OTP sau khi xác thực thành công
             res.json({ success: true, message: "Đăng ký thành công!" });
         } else {
             res.status(400).json({ success: false, message: "Sai mã xác thực" });
