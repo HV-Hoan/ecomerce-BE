@@ -3,14 +3,12 @@ const router = express.Router();
 const sequelize = require("../dbs/connect");
 const Product = require('../model/Product');
 const Vote = require('../model/Vote');
-const authenticateToken = require('../middleware/authenticateToken');
 
-
-
+// Lấy danh sách đánh giá
 exports.GetVote = async (req, res) => {
     try {
         const showList = await Vote.findAll();
-        if (!showList) {
+        if (showList.length === 0) {
             return res.status(404).json({
                 status: 404,
                 message: "Không tìm thấy dữ liệu đánh giá"
@@ -29,26 +27,28 @@ exports.GetVote = async (req, res) => {
         });
     }
 };
-
 exports.Get_Vote_from_product = async (req, res) => {
     try {
-        const { id_Product } = req.params;
+        const { productId } = req.params;
+        if (!productId) {
+            return res.status(400).json({ message: "Thiếu productId" });
+        }
+        // Tìm thông tin đánh giá
         const vote = await Vote.findOne({
-            where: { id_Product },
+            where: { productId },
             attributes: ["averageRating"],
         });
 
-        if (!vote) {
-            return res.json({ averageRating: 0 }); // trả về 0 nếu không có dữ liệu
-        }
-
-        res.json({ averageRating: vote.averageRating });
+        res.json({ averageRating: vote?.averageRating ?? 0 });
     } catch (error) {
         console.error("Lỗi khi lấy đánh giá sản phẩm:", error);
         res.status(500).json({ message: "Lỗi server" });
     }
 };
-// API POST để đánh giá sản phẩm
+
+
+
+// Đánh giá sản phẩm
 exports.Rate_Product = async (req, res) => {
     const { productId } = req.params;
     const { rating } = req.body;
@@ -62,7 +62,7 @@ exports.Rate_Product = async (req, res) => {
     try {
         // kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
         const existingVote = await Vote.findOne({
-            where: { id: userId, id_Product: productId },
+            where: { userId: userId, productId: productId },
         });
 
         // nếu người dùng đã đánh giá rồi, trả về thông báo lỗi
@@ -72,16 +72,16 @@ exports.Rate_Product = async (req, res) => {
 
         await Vote.create({
             rating: parseFloat(rating),
-            id: userId,
-            id_Product: productId,
+            userId: userId,
+            productId: productId,
         });
 
         // Tính toán rating trung bình và tổng số lượt đánh giá của sản phẩm
         const result = await Vote.findAll({
-            where: { id_Product: productId },
+            where: { productId: productId },
             attributes: [
                 [sequelize.fn("AVG", sequelize.col("rating")), "averageRating"],  // Tính trung bình rating
-                [sequelize.fn("COUNT", sequelize.col("id_Vote")), "ratingCount"], // Tính tổng số lượt đánh giá
+                [sequelize.fn("COUNT", sequelize.col("id")), "ratingCount"], // Tính tổng số lượt đánh giá
             ],
             raw: true,
         });
@@ -91,7 +91,7 @@ exports.Rate_Product = async (req, res) => {
 
         await Vote.update(
             { averageRating: averageRating, ratingCount: ratingCount },
-            { where: { id_Product: productId } }
+            { where: { productId: productId } }
         );
         res.json({ averageRating, ratingCount });
     } catch (error) {
@@ -101,42 +101,45 @@ exports.Rate_Product = async (req, res) => {
 };
 
 
-// API lấy danh sách top-rated sản phẩm, sắp xếp theo ratingCount giảm dần
+const { Sequelize } = require("sequelize");
+
+
 exports.Top_Rate = async (req, res) => {
     try {
-        const topRatedProducts = await Product.findAll({
-            attributes: {
-                include: [
-                    [
-                        sequelize.literal(`(
-                            SELECT AVG(v.rating)
-                            FROM vote v
-                            WHERE v.id_Product = Product.id_Product
-                        )`),
-                        "averageRating"
-                    ],
-                    [
-                        sequelize.literal(`(
-                            SELECT COUNT(v.id_Vote)
-                            FROM vote v
-                            WHERE v.id_Product = Product.id_Product
-                        )`),
-                        "ratingCount"
-                    ]
-                ]
-            },
-            order: [[sequelize.literal("ratingCount"), "DESC"]],  // Sắp xếp theo ratingCount giảm dần
+        // Lấy danh sách sản phẩm với số lượt đánh giá và điểm trung bình
+        const ratedProducts = await Product.findAll({
+            attributes: [
+                "id",
+                "name_Product",
+                "price_Product",
+                "image_Product",
+                [Sequelize.literal(`(
+                    SELECT IFNULL(AVG(v.rating), 0) 
+                    FROM vote v 
+                    WHERE v.productId = Product.id
+                )`), "averageRating"],
+                [Sequelize.literal(`(
+                    SELECT COUNT(v.id) 
+                    FROM vote v 
+                    WHERE v.productId = Product.id
+                )`), "ratingCount"]
+            ],
+            order: [[Sequelize.literal("ratingCount"), "DESC"]],
             limit: 4
         });
 
-        if (!topRatedProducts || topRatedProducts.length === 0) {
-            return res.status(404).json({
-                status: 404,
-                message: "Không tìm thấy sản phẩm đánh giá cao"
-            });
+        if (ratedProducts.length > 0 && ratedProducts.some(p => p.dataValues.ratingCount > 0)) {
+            // Nếu có sản phẩm có đánh giá, trả về danh sách này
+            return res.json({ products: ratedProducts });
         }
 
-        res.json({ products: topRatedProducts });
+        // Nếu không có sản phẩm nào có đánh giá, lấy toàn bộ danh sách sản phẩm
+        const allProducts = await Product.findAll({
+            attributes: ["id", "name_Product", "price_Product", "image_Product"],
+            limit: 4
+        });
+
+        res.json({ products: allProducts });
     } catch (error) {
         console.error("Lỗi khi lấy danh sách sản phẩm top-rated:", error);
         res.status(500).json({ message: "Có lỗi xảy ra khi lấy danh sách sản phẩm." });

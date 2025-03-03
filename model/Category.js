@@ -3,7 +3,7 @@ const sequelize = require("../dbs/connect");
 const ProductCategory = require("./ProductCategory"); // Import bảng trung gian
 
 const Category = sequelize.define("Category", {
-    id_Category: {
+    id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
@@ -25,8 +25,9 @@ Category.associate = () => {
     const Product = require("./Product");
     Category.belongsToMany(Product, {
         through: ProductCategory,
-        foreignKey: "id_Category",
-        otherKey: "id_Product"
+        foreignKey: "categoryId",
+        otherKey: "productId",
+        onDelete: "CASCADE"
     });
 };
 

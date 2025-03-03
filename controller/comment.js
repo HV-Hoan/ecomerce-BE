@@ -1,4 +1,3 @@
-
 const Comment = require("../model/Comment");
 const User = require("../model/User");
 
@@ -17,8 +16,8 @@ exports.PostComment = async (req, res) => {
 
         // Tạo bình luận mới
         const newComment = await Comment.create({
-            id: userId,  // 
-            id_Product: productId,
+            userId: userId,  // 
+            productId: productId,
             comment,
             createdAt: new Date()
         });
@@ -38,7 +37,7 @@ exports.GetComment = async (req, res) => {
         if (!productId) return res.status(400).json({ error: "Thiếu id sản phẩm" });
 
         const comments = await Comment.findAll({
-            where: { id_Product: productId },
+            where: { productId: productId },
             order: [["createdAt", "DESC"]],
             include: [
                 {

@@ -6,7 +6,7 @@ const Product = require("./Product"); // Import model sản phẩm
 const Vote = sequelize.define(
     "Vote",
     {
-        id_Vote: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -26,16 +26,12 @@ const Vote = sequelize.define(
             allowNull: true,
             defaultValue: 0.0,
         },
-        fullname: {
-            type: DataTypes.STRING(255),
-            allowNull: true,
-        },
         status: {
             type: DataTypes.ENUM("0", "1"),
             allowNull: false,
             defaultValue: "1",//1 la chua danh gia /  0 la da danh gia
         },
-        id: {
+        userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
@@ -44,12 +40,12 @@ const Vote = sequelize.define(
             },
             onDelete: "CASCADE",
         },
-        id_Product: {
+        productId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
                 model: Product, // Khóa ngoại liên kết với Product
-                key: "id_Product",
+                key: "id",
             },
             onDelete: "CASCADE",
         },
@@ -60,17 +56,17 @@ const Vote = sequelize.define(
         indexes: [
             {
                 unique: true,
-                fields: ["id", "id_Product"], // Ngăn user đánh giá nhiều lần trên cùng một sản phẩm
+                fields: ["userId", "productId"], // Ngăn user đánh giá nhiều lần trên cùng một sản phẩm
             },
         ],
     }
 );
 
-// Thiết lập quan hệ
-Vote.belongsTo(User, { foreignKey: "id" });
-User.hasMany(Vote, { foreignKey: "id" });
+Vote.belongsTo(User, { foreignKey: "userId", onDelete: "CASCADE" });
+User.hasMany(Vote, { foreignKey: "userId", onDelete: "CASCADE" });
 
-Vote.belongsTo(Product, { foreignKey: "id_Product" });
-Product.hasMany(Vote, { foreignKey: "id_Product" });
+Vote.belongsTo(Product, { foreignKey: "productId", onDelete: "CASCADE" });
+Product.hasMany(Vote, { foreignKey: "productId", onDelete: "CASCADE" });
+
 
 module.exports = Vote;

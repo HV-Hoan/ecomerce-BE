@@ -2,11 +2,11 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../dbs/connect");
 
 const ProductCategory = sequelize.define("ProductCategory", {
-    id_Product: {
+    productId: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    id_Category: {
+    categoryId: {
         type: DataTypes.INTEGER,
         allowNull: false
     }

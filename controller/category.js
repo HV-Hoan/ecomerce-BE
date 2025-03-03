@@ -1,6 +1,3 @@
-const express = require('express');
-
-
 const Category = require("../model/Category");
 
 //lay danh sach loai

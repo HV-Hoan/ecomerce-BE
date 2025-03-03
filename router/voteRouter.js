@@ -7,7 +7,7 @@ const ctrlVote = require("../controller/vote");
 
 router.get("/vote", ctrlVote.GetVote);
 
-router.get("/vote/:id_Product", ctrlVote.Get_Vote_from_product);
+router.get("/vote/:productId", ctrlVote.Get_Vote_from_product);
 // API POST để đánh giá sản phẩm
 router.post("/vote/:productId/rate", authenticateToken, ctrlVote.Rate_Product);
 

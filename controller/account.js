@@ -55,17 +55,18 @@ router.post("/verify-otp", async (req, res) => {
 
     try {
         // kiểm tra xem email đã đăng ký chưa
-        const isRegistered = await client.get(`registered:${email}`);
+        const isRegistered = await client.get(`email:${email}`);
         if (isRegistered) {
             return res.status(400).json({ success: false, message: "Email này đã được đăng ký!" });
         }
+        console.log("Email nhận được:", email);
+        console.log("OTP nhập vào:", otp);
 
-        // lấy OTP từ Redis
         const storedOtp = await client.get(email);
+        console.log("OTP lưu trong Redis:", storedOtp);
         if (storedOtp === otp) {
-            // xác thực thành công, đánh dấu email đã đăng ký
-            await client.set(`registered:${email}`, "true"); // đánh dấu email đã đăng ký
-            await client.del(email); // xóa OTP sau khi xác thực thành công
+            await client.set(`email:${email}`, "true", { EX: 86400 });
+            await client.del(email);
             res.json({ success: true, message: "Đăng ký thành công!" });
         } else {
             res.status(400).json({ success: false, message: "Sai mã xác thực" });
@@ -75,6 +76,7 @@ router.post("/verify-otp", async (req, res) => {
         res.status(500).json({ success: false, message: "Lỗi hệ thống" });
     }
 });
+
 
 router.get("/account/:id", async (req, res) => {
     try {

@@ -52,7 +52,7 @@ exports.Dowload = async (req, res) => {
 exports.GetProduct = async (req, res) => {
     try {
         const list_Product = await Product.findAll({
-            order: [["id_Product", "DESC"]],
+            order: [["id", "DESC"]],
         });
 
         res.status(200).json({
@@ -66,14 +66,28 @@ exports.GetProduct = async (req, res) => {
 };
 
 exports.GetDetailProduct = async (req, res) => {
-    const { id } = req.params;
-    const findbyID = await Product.findByPk(id);
-    res.status(200).json({
-        status: 200,
-        message: "Lấy dữ liệu thành công",
-        findbyID
-    });
+    try {
+        const { id } = req.params;
+        if (!id) {
+            return res.status(400).json({ status: 400, message: "Thiếu ID sản phẩm" });
+        }
+
+        const product = await Product.findByPk(id);
+        if (!product) {
+            return res.status(404).json({ status: 404, message: "Không tìm thấy sản phẩm" });
+        }
+
+        res.status(200).json({
+            status: 200,
+            message: "Lấy dữ liệu thành công",
+            product
+        });
+    } catch (error) {
+        console.error("Lỗi API:", error);
+        res.status(500).json({ status: 500, message: "Lỗi server" });
+    }
 };
+
 
 // API lấy danh mục cùng sản phẩm liên quan
 exports.Get_category_with_products = async (req, res) => {
@@ -91,11 +105,28 @@ exports.Get_category_with_products = async (req, res) => {
     }
 };
 
-exports.PostProduct = async (req, res) => {
-    const { name_Product, description, price_Product, id_Category } = req.body;
 
-    if (!Array.isArray(id_Category) || id_Category.length === 0) {
-        return res.status(400).json({ error: 'Vui lòng cung cấp ít nhất một category cho sản phẩm.' });
+
+exports.PostProduct = async (req, res) => {
+    const { name_Product, description, price_Product } = req.body;
+    let categoryId = req.body.categoryId;
+
+
+    if (!categoryId) {
+        return res.status(400).json({ error: "Vui lòng cung cấp ít nhất một category cho sản phẩm." });
+    }
+
+    // Nếu categoryId là chuỗi (khi gửi từ FormData), chuyển thành mảng
+    if (typeof categoryId === "string") {
+        try {
+            categoryId = JSON.parse(categoryId);
+        } catch (error) {
+            categoryId = [categoryId]; // Trường hợp chỉ có 1 category, không phải JSON
+        }
+    }
+
+    if (!Array.isArray(categoryId) || categoryId.length === 0) {
+        return res.status(400).json({ error: "Vui lòng cung cấp ít nhất một category cho sản phẩm." });
     }
 
     try {
@@ -120,17 +151,17 @@ exports.PostProduct = async (req, res) => {
         });
 
         // Thêm từng category vào bảng product_category
-        for (const categoryId of id_Category) {
-            const categoryExists = await Category.findByPk(categoryId);
+        for (const catId of categoryId) {
+            const categoryExists = await Category.findByPk(catId);
             if (!categoryExists) {
                 return res.status(400).json({
-                    error: `Loại sản phẩm không hợp lệ: ${categoryId}`
+                    error: `Loại sản phẩm không hợp lệ: ${catId}`
                 });
             }
 
             await ProductCategory.create({
-                id_Product: newProduct.id_Product,
-                id_Category: categoryId
+                productId: newProduct.id,
+                categoryId: catId
             });
         }
 
@@ -143,6 +174,7 @@ exports.PostProduct = async (req, res) => {
         res.status(500).json({ error: 'Lỗi khi thêm sản phẩm', details: error.message });
     }
 };
+
 
 //sua product
 exports.PutProduct = async (req, res) => {
@@ -208,8 +240,8 @@ exports.Delete_with_product_category = async (req, res) => {
         // Kiểm tra sự tồn tại của product và category
         const productCategory = await ProductCategory.findOne({
             where: {
-                id_Product: productId,
-                id_Category: categoryId
+                productId: productId,
+                categoryId: categoryId
             }
         });
 
@@ -221,7 +253,7 @@ exports.Delete_with_product_category = async (req, res) => {
         await productCategory.destroy();
 
         // xóa sản phẩm nếu cần (nếu không muốn xóa hoàn toàn, chỉ xóa liên kết thì bỏ phần này)
-        await Product.destroy({ where: { id_Product: productId } });
+        await Product.destroy({ where: { productId: productId } });
 
         res.status(200).json({ message: "Xóa sản phẩm thành công" });
     } catch (err) {

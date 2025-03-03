@@ -4,7 +4,7 @@ const User = require("./User");
 const Product = require("./Product");
 
 const Cart = sequelize.define("Cart", {
-    id_Cart: {
+    id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
@@ -17,15 +17,15 @@ const Cart = sequelize.define("Cart", {
         type: DataTypes.INTEGER,
         defaultValue: 1,
     },
-    id_Product: {
+    productId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
             model: Product,
-            key: "id_Product",
+            key: "id",
         }
     },
-    id: {
+    userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
@@ -39,8 +39,7 @@ const Cart = sequelize.define("Cart", {
         timestamps: false,
     });
 
-// ✅ Thiết lập mối quan hệ
-Cart.belongsTo(Product, { foreignKey: "id_Product" }); // Cart có 1 Product
-Cart.belongsTo(User, { foreignKey: "id" }); // Cart thuộc về 1 User
+Cart.belongsTo(Product, { foreignKey: "productId" }); // cart có 1 Product
+Cart.belongsTo(User, { foreignKey: "userId" }); // cart thuộc về 1 User
 
 module.exports = Cart;

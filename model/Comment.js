@@ -6,12 +6,12 @@ const Product = require("./Product");
 const Comment = sequelize.define(
     "Comment",
     {
-        id_Comment: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
         },
-        id: { // là khóa chính trong bảng user
+        userId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
@@ -20,12 +20,12 @@ const Comment = sequelize.define(
             },
             onDelete: "CASCADE",
         },
-        id_Product: { // là khóa chính trong bảng product
+        productId: {
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
                 model: Product,
-                key: "id_Product",
+                key: "id",
             },
             onDelete: "CASCADE",
         },
@@ -46,11 +46,10 @@ const Comment = sequelize.define(
     }
 );
 
-// Thiết lập quan hệ khóa ngoại
-Comment.belongsTo(User, { foreignKey: "id" });
-User.hasMany(Comment, { foreignKey: "id" });
+Comment.belongsTo(User, { foreignKey: "userId" });
+User.hasMany(Comment, { foreignKey: "userId" });
 
-Comment.belongsTo(Product, { foreignKey: "id_Product" });
-Product.hasMany(Comment, { foreignKey: "id_Product" });
+Comment.belongsTo(Product, { foreignKey: "productId" });
+Product.hasMany(Comment, { foreignKey: "productId" });
 
 module.exports = Comment;

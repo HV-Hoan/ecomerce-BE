@@ -3,7 +3,7 @@ const sequelize = require("../dbs/connect");
 const ProductCategory = require("./ProductCategory");
 
 const Product = sequelize.define("Product", {
-    id_Product: {
+    id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
@@ -33,13 +33,13 @@ const Product = sequelize.define("Product", {
     timestamps: false
 });
 
-
 Product.associate = () => {
     const Category = require("./Category");
     Product.belongsToMany(Category, {
         through: ProductCategory,
-        foreignKey: "id_Product",
-        otherKey: "id_Category"
+        foreignKey: "productId",
+        otherKey: "categoryId",
+        onDelete: "CASCADE"
     });
 };
 

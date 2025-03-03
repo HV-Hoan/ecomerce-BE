@@ -13,7 +13,7 @@ const Order = sequelize.define("Order", {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: User, // Khóa ngoại liên kết với User
+            model: User, // khóa ngoại liên kết với User
             key: "id",
         }
     },
@@ -22,8 +22,8 @@ const Order = sequelize.define("Order", {
         allowNull: false
     },
     status_Order: {
-        type: DataTypes.ENUM("0", "1", "2"), // Trạng thái đơn hàng 0 la đang chờ , 1 là hoàn thành, 2 là hủyhủy
-        defaultValue: "0", // Mặc định là đang chờ 
+        type: DataTypes.ENUM("0", "1", "2"), // trạng thái đơn hàng 0 la đang chờ , 1 là hoàn thành, 2 là hủyhủy
+        defaultValue: "0", // mặc định là đang chờ 
         allowNull: false
     },
     created_at: {
