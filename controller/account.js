@@ -28,7 +28,7 @@ router.post("/send-otp", async (req, res) => {
     if (!email) return res.status(400).json({ message: "Email is required" });
 
     const otp = crypto.randomInt(100000, 999999).toString(); //OTP ngẫu nhiên 6 số
-    await client.set(email, otp, { EX: 300 }); //sống 300s
+    await client.set(email, otp, { EX: 300 });
 
     try {
         await transporter.sendMail({
@@ -59,11 +59,8 @@ router.post("/verify-otp", async (req, res) => {
         if (isRegistered) {
             return res.status(400).json({ success: false, message: "Email này đã được đăng ký!" });
         }
-        console.log("Email nhận được:", email);
-        console.log("OTP nhập vào:", otp);
 
         const storedOtp = await client.get(email);
-        console.log("OTP lưu trong Redis:", storedOtp);
         if (storedOtp === otp) {
             await client.set(`email:${email}`, "true", { EX: 86400 });
             await client.del(email);

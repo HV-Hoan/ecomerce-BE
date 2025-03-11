@@ -58,7 +58,7 @@ exports.Rate_Product = async (req, res) => {
     if (rating < 1 || rating > 5 || isNaN(rating)) {
         return res.status(400).json({ message: "Điểm đánh giá không hợp lệ. Điểm phải từ 1 đến 5." });
     }
-
+    console.log("Header nhận được:", req.headers.authorization);
     try {
         // kiểm tra xem người dùng đã đánh giá sản phẩm này chưa
         const existingVote = await Vote.findOne({

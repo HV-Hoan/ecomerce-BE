@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-const TOKEN = process.env.TOKEN
+const TOKEN = process.env.ACCESS_SECRET
 
 const authenticateToken = (req, res, next) => {
     const token = req.header("Authorization")?.split(" ")[1];
@@ -9,7 +9,7 @@ const authenticateToken = (req, res, next) => {
     jwt.verify(token, TOKEN, (err, user) => {
         if (err) return res.status(403).json({ message: "Token không hợp lệ" });
 
-        req.user = user; // Lưu thông tin user vào req để dùng sau
+        req.user = user;
         next();
     });
 };
