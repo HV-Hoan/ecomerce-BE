@@ -2,28 +2,37 @@ const { DataTypes } = require("sequelize");
 const sequelize = require("../dbs/connect");
 const User = require("./User");
 
-
 const Order = sequelize.define("Order", {
-    id_Order: {
+    id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true
     },
-    id: {
+    userId: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: User, // khóa ngoại liên kết với User
-            key: "id",
-        }
+        allowNull: false
     },
-    total_price: {
+    price: {
         type: DataTypes.FLOAT,
         allowNull: false
     },
     status_Order: {
-        type: DataTypes.ENUM("0", "1", "2"), // trạng thái đơn hàng 0 la đang chờ , 1 là hoàn thành, 2 là hủyhủy
-        defaultValue: "0", // mặc định là đang chờ 
+        type: DataTypes.ENUM("0", "1", "2"),
+        defaultValue: "0",
+        allowNull: false
+    },
+    quantity: {
+        type: DataTypes.FLOAT,
+        allowNull: false
+    },
+    payment_method: {
+        type: DataTypes.ENUM("0", "1"),
+        defaultValue: "0",
+        allowNull: false
+    },
+    payment_status: {
+        type: DataTypes.ENUM("0", "1", "2"),
+        defaultValue: "0",
         allowNull: false
     },
     created_at: {
@@ -31,11 +40,15 @@ const Order = sequelize.define("Order", {
         defaultValue: DataTypes.NOW,
         allowNull: false
     }
-},
-    {
-        tableName: "order",
-        timestamps: false
-    }
-)
+}, {
+    tableName: "order",
+    timestamps: false
+});
+
+Order.belongsTo(User, { foreignKey: "userId" });
+
+// Import OrderDetail sau khi Order đã được định nghĩa
+const OrderDetail = require("./OrderDetail");
+Order.hasMany(OrderDetail, { foreignKey: "orderId" });
 
 module.exports = Order;

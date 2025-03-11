@@ -26,8 +26,6 @@ router.use('', cart);
 const order = require("../router/orderRouter");
 router.use('', order);
 
-const payment = require("../router/paymentRouter");
-router.use('', payment);
 
 
 module.exports = router;

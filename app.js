@@ -41,12 +41,22 @@ app.use('/api', indexRouter);
 
 const Product = require("./model/Product");
 const Category = require("./model/Category");
+const Order = require("./model/Order");
+const User = require("./model/User");
+const OrderDetail = require("./model/OrderDetail");
 
 // Gọi các hàm associate sau khi định nghĩa tất cả các model
 Product.associate();
 Category.associate();
 
-const User = require("./model/User");
+// Thiết lập quan hệ
+Order.hasMany(OrderDetail, { foreignKey: 'orderId' });
+OrderDetail.belongsTo(Order, { foreignKey: 'orderId' });
+
+OrderDetail.belongsTo(Product, { foreignKey: 'productId' });
+OrderDetail.belongsTo(User, { foreignKey: 'userId' });
+
+
 
 app.post("/login", async (req, res) => {
     const { username, password } = req.body;
