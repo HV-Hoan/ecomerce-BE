@@ -3,6 +3,9 @@ const Order = require("../model/Order");
 const OrderDetail = require("../model/OrderDetail");
 const User = require("../model/User");
 const Product = require("../model/Product");
+
+
+
 exports.PostOrder = async (req, res) => {
     try {
         const { userId, price, quantity, status_Order, payment_method, payment_status, products } = req.body;
@@ -34,7 +37,7 @@ exports.PostOrder = async (req, res) => {
         }).filter(Boolean); // Lọc bỏ các phần tử `null` nếu có sản phẩm thiếu thông tin
 
         if (orderDetails.length > 0) {
-            await OrderDetail.bulkCreate(orderDetails); // Chèn nhiều dòng vào OrderDetail
+            await OrderDetail.bulkCreate(orderDetails);
             console.log(`Đã thêm ${orderDetails.length} sản phẩm vào OrderDetail`);
         } else {
             console.log("Không có sản phẩm hợp lệ nào được thêm vào OrderDetail.");
@@ -69,9 +72,8 @@ exports.GetAll = async (req, res) => {
 }
 exports.GetOrderById = async (req, res) => {
     try {
-        const { id } = req.params; // Lấy ID đơn hàng từ request
+        const { id } = req.params;
 
-        // Tìm đơn hàng theo ID và liên kết dữ liệu từ OrderDetail, Product và User
         const order = await Order.findOne({
             where: { id: req.params.id },
             include: [
@@ -99,7 +101,6 @@ exports.GetOrderById = async (req, res) => {
 };
 
 
-// Cập nhật đơn hàng
 exports.UpdateOrder = async (req, res) => {
     try {
         const { orderId } = req.params;
@@ -123,6 +124,40 @@ exports.UpdateOrder = async (req, res) => {
     } catch (error) {
         console.error("Lỗi khi cập nhật đơn hàng:", error);
         res.status(500).json({ message: "Lỗi máy chủ!" });
+    }
+};
+exports.GetOrderByUser = async (req, res) => {
+    try {
+        const userId = req.user?.id; // Dùng optional chaining để tránh lỗi
+        console.log("User ID:", userId);
+
+        if (!userId) {
+            return res.status(400).json({ message: "Thiếu userId! Vui lòng đăng nhập lại." });
+        }
+
+        const orders = await Order.findAll({
+            where: { userId },
+            include: [
+                {
+                    model: OrderDetail,
+                    include: [
+                        {
+                            model: Product,
+                            attributes: ["id", "name_product", "image_product", "price_product"]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ message: "Không có đơn hàng nào!" });
+        }
+
+        return res.status(200).json({ message: "Lấy đơn hàng thành công!", orders });
+    } catch (error) {
+        console.error("Lỗi khi lấy đơn hàng theo userId:", error);
+        return res.status(500).json({ message: "Lỗi máy chủ!" });
     }
 };
 
